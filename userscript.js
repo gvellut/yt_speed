@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Easier YT video speed setting
+// @name         Easier video speed setting
 // @namespace    https://vellut.com/
-// @version      0.6
-// @description  Shortcuts for setting Youtube playback speed
+// @version      0.4
+// @description  It's all in the title
 // @author       GV
 // @match        *://www.youtube.com/*
 // @grant        none
@@ -13,32 +13,32 @@
     const hotkeys = {
         DECREASE: "KeyZ",
         RESET: "KeyX",
-        SPEED: "KeyV", // C conflicts with YT key
-        MAX: "KeyB",
+        SPEED: "KeyB",
+        MAX: "KeyN",
     };
 
-    // from a shortcut
-    const setSpeed = () => {
+
+
+    const setSpeed = (speed) => {
         waitFor(".html5-main-video").then((video) => {
             video.playbackRate = speed;
+
             console.log(`New speed is ${speed}x`);
+
+            let oldDisplay = document.getElementById("speed-display-monkey");
+            if (!oldDisplay) {
+                let newElement = document.createElement("div");
+                let display = `<div id="speed-display-monkey" style="border: 2px solid white; position: absolute; left: 2.5%; top: 50px; width: fit-content; height: fit-content; z-index: 9999; background: rgba(15, 30, 18, .5); cursor: all-scroll; padding: 1rem; border-radius: 5px;"><strong style="color: white; font-size: 22px;">${speed}X speed</strong></div>`;
+                newElement.innerHTML = display;
+
+                document.body.append(newElement);
+            } else {
+                oldDisplay.getElementsByTagName("strong")[0].innerText = `${speed}X speed`;
+                oldDisplay.style.opacity = 1;
+            }
+            fadeOutEffect();
         });
     };
-
-    function showSpeed() {
-        let oldDisplay = document.getElementById("speed-display-monkey");
-        if (!oldDisplay) {
-            let newElement = document.createElement("div");
-            let display = `<div id="speed-display-monkey" style="border: 2px solid white; position: absolute; left: 2.5%; top: 50px; width: fit-content; height: fit-content; z-index: 9999; background: rgba(15, 30, 18, .5); cursor: all-scroll; padding: 1rem; border-radius: 5px;"><strong style="color: white; font-size: 22px;">${speed}X speed</strong></div>`;
-            newElement.innerHTML = display;
-
-            document.body.append(newElement);
-        } else {
-            oldDisplay.getElementsByTagName("strong")[0].innerText = `${speed}X speed`;
-            oldDisplay.style.opacity = 1;
-        }
-        fadeOutEffect();
-    }
 
     function waitFor(selector) {
         return new Promise(resolve => {
@@ -80,16 +80,6 @@
         if ("/watch" === location.pathname) {
             setSpeed(speed);
         }
-
-        waitFor(".html5-main-video").then((video) => {
-            video.onratechange = () => {
-                // if set outside the userscript : will be set so increment / decrement work fine
-                // that rate change can also come from the UserScript
-                // popup will be shown either way
-                speed = video.playbackRate;
-                showSpeed();
-            };
-        });
     };
 
     (document.body || document.documentElement).addEventListener(
@@ -113,7 +103,6 @@
     };
 
     document.onkeydown = function (e) {
-        // don't process if writing a comment of search
         if (isComposableElement(e.target)) {
             return;
         }
@@ -131,12 +120,12 @@
                     speed = 1.75;
                     break;
                 case hotkeys.MAX:
-                    speed = 2;
+                    speed = 2.5;
                     break;
             }
 
             if (speed !== null) {
-                setSpeed();
+                setSpeed(speed);
             }
         }
     };
